@@ -1,4 +1,4 @@
-.PHONY: up bash phpstan cs cs\:fix
+.PHONY: up bash test phpstan cs cs\:fix
 
 DOCKER_RUN := docker compose run --rm --no-deps shipmonk-packing-app
 
@@ -7,6 +7,9 @@ up:
 
 bash:
 	docker compose run --rm shipmonk-packing-app bash
+
+test:
+	$(DOCKER_RUN) vendor/bin/phpunit tests
 
 phpstan:
 	$(DOCKER_RUN) vendor/bin/phpstan analyse src
