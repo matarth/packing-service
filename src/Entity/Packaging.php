@@ -13,7 +13,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 class Packaging
 {
-
     #[ORM\Id]
     #[ORM\Column(type: Types::INTEGER)]
     #[ORM\GeneratedValue]
@@ -38,5 +37,4 @@ class Packaging
         $this->length = $length;
         $this->maxWeight = $maxWeight;
     }
-
 }

@@ -12,7 +12,7 @@ test:
 	$(DOCKER_RUN) vendor/bin/phpunit tests
 
 phpstan:
-	$(DOCKER_RUN) vendor/bin/phpstan analyse src
+	$(DOCKER_RUN) vendor/bin/phpstan analyse src --level max
 
 cs:
 	$(DOCKER_RUN) vendor/bin/phpcs --standard=PSR12 src

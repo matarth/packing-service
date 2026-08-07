@@ -1,18 +1,37 @@
 <?php
 
-use App\Application;
-use Doctrine\ORM\EntityManager;
-use GuzzleHttp\Psr7\Message;
-use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Psr7\Uri;
+declare(strict_types=1);
 
-/** @var EntityManager $entityManager */
-$entityManager = require __DIR__ . '/src/bootstrap.php';
+use App\Exception\InvalidInput;
+use App\Facade\PackingFacade;
+use App\Input\PackingInput;
+use App\Output\ErrorOutput;
 
-$request = new Request('POST', new Uri('http://localhost/pack'), ['Content-Type' => 'application/json'], $argv[1]);
+require __DIR__ . '/vendor/autoload.php';
 
-$application = new Application($entityManager);
-$response = $application->run($request);
+try {
+    if ($argc !== 2) {
+        throw new InvalidInput('Expected exactly one JSON argument.');
+    }
 
-echo "<<< In:\n" . Message::toString($request) . "\n\n";
-echo ">>> Out:\n" . Message::toString($response) . "\n\n";
+    try {
+        $decodedInput = json_decode($argv[1], true, 512, JSON_THROW_ON_ERROR);
+    } catch (JsonException) {
+        throw new InvalidInput('Input must be valid JSON.');
+    }
+
+    if (!is_array($decodedInput) || array_is_list($decodedInput)) {
+        throw new InvalidInput('Input must be a JSON object.');
+    }
+
+    $input = PackingInput::fromArray($decodedInput);
+    $output = (new PackingFacade())->run($input);
+    $exitCode = 0;
+} catch (InvalidInput $exception) {
+    $output = new ErrorOutput('invalid_input', $exception->getMessage());
+    $exitCode = 1;
+}
+
+echo json_encode($output, JSON_THROW_ON_ERROR) . PHP_EOL;
+
+exit($exitCode);
