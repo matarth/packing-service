@@ -39,14 +39,26 @@ final class PackingInputTest extends TestCase
     /** @return iterable<string, array{array<string, mixed>, string}> */
     public static function invalidInputProvider(): iterable
     {
-        yield 'missing products' => [[], 'Field "products" is required.'];
-        yield 'empty products' => [['products' => []], 'Field "products" must contain at least one product.'];
-        yield 'missing product field' => [['products' => [['width' => 1]]], 'Product at index 0 is missing field "height".'];
+        yield 'missing products' => [[], 'Field "products" is a required field of type array.'];
+        yield 'empty products' => [['products' => []], 'Field "products" is a required field of type array.'];
+        yield 'missing product field' => [['products' => [['width' => 1], ['hight' => 1]]], 'Missing value at index `height`'];
         yield 'non-positive dimension' => [['products' => [[
             'width' => 0,
             'height' => 2,
             'length' => 3,
             'weight' => 4,
-        ]]], 'Product at index 0 field "width" must be greater than zero.'];
+        ]]], 'Width must be greater than 0'];
+        yield 'invalid_type string' => [['products' => [[
+            'width' => '1',
+            'height' => 1,
+            'length' => 1,
+            'weight' => 1,
+        ]]], 'Value at index `width` must be a number.'];
+        yield 'invalid_type null' => [['products' => [[
+            'width' => null,
+            'height' => 1,
+            'length' => 1,
+            'weight' => 1,
+        ]]], 'Value at index `width` must be a number.'];
     }
 }

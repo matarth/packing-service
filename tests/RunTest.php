@@ -12,23 +12,19 @@ final class RunTest extends TestCase
     {
         $result = $this->runCommand('{"products":[{"width":1,"height":2,"length":3,"weight":4}]}');
 
-        self::assertSame(0, $result['exitCode']);
+        self::assertSame(0, $result['exitCode'], $result['output']);
         $response = json_decode($result['output'], true, 512, JSON_THROW_ON_ERROR);
 
         self::assertNull($response['error']);
         self::assertIsArray($response['data']);
         self::assertArrayHasKey('box', $response['data']);
-        self::assertIsArray($response['data']['box']);
-        self::assertArrayHasKey('width', $response['data']['box']);
-        self::assertArrayHasKey('height', $response['data']['box']);
-        self::assertArrayHasKey('length', $response['data']['box']);
     }
 
     public function testReturnsStructuredErrorForMalformedJson(): void
     {
         $result = $this->runCommand('{');
 
-        self::assertSame(1, $result['exitCode']);
+        self::assertSame(1, $result['exitCode'], $result['output']);
         self::assertSame([
             'data' => null,
             'error' => ['code' => 'invalid_input', 'message' => 'Input must be valid JSON.'],
@@ -39,10 +35,10 @@ final class RunTest extends TestCase
     {
         $result = $this->runCommand('{"products":[{"width":0,"height":2,"length":3,"weight":4}]}');
 
-        self::assertSame(1, $result['exitCode']);
+        self::assertSame(1, $result['exitCode'], $result['output']);
         self::assertSame([
             'data' => null,
-            'error' => ['code' => 'invalid_input', 'message' => 'Product at index 0 field "width" must be greater than zero.'],
+            'error' => ['code' => 'invalid_input', 'message' => 'Width must be greater than 0'],
         ], json_decode($result['output'], true, 512, JSON_THROW_ON_ERROR));
     }
 

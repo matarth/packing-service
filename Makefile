@@ -15,7 +15,7 @@ phpstan:
 	$(DOCKER_RUN) vendor/bin/phpstan analyse src --level max
 
 cs:
-	$(DOCKER_RUN) vendor/bin/phpcs --standard=PSR12 src
+	$(DOCKER_RUN) vendor/bin/phpcs --standard=PSR12 src tests
 
 cs\:fix:
-	$(DOCKER_RUN) vendor/bin/phpcbf --standard=PSR12 src
+	$(DOCKER_RUN) vendor/bin/phpcbf --standard=PSR12 src tests

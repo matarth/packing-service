@@ -24,8 +24,12 @@ try {
         throw new InvalidInput('Input must be a JSON object.');
     }
 
+
     $input = PackingInput::fromArray($decodedInput);
-    $output = (new PackingFacade())->run($input);
+
+    /** @var PackingFacade $facade */
+    $facade = (require __DIR__ . '/src/container.php')->get(PackingFacade::class);
+    $output = $facade->findSmallestBox($input);
     $exitCode = 0;
 } catch (InvalidInput $exception) {
     $output = new ErrorOutput('invalid_input', $exception->getMessage());

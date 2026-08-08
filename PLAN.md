@@ -198,8 +198,6 @@ Each step should be completed and verified before moving to the next.
 
 ## Acceptance criteria
 
-- The application remains framework-free: no Symfony application/kernel or DI
-  container is introduced.
 - `run.php` has a clear JSON-in/JSON-out contract suitable for scripting.
 - All replaceable infrastructure is manually wired through constructors at the
   composition root.

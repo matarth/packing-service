@@ -19,22 +19,19 @@ final readonly class PackingInput
     /** @param array<string, mixed> $input */
     public static function fromArray(array $input): self
     {
-        if (!array_key_exists('products', $input)) {
-            throw new InvalidInput('Field "products" is required.');
-        }
-
-        if (!is_array($input['products']) || !array_is_list($input['products'])) {
-            throw new InvalidInput('Field "products" must be an array.');
+        if (
+            !array_key_exists('products', $input) ||
+            !is_array($input['products']) ||
+            [] === $input['products']
+        ) {
+            throw new InvalidInput('Field "products" is a required field of type array.');
         }
 
         $products = [];
-        foreach ($input['products'] as $index => $product) {
-            if (!is_array($product) || array_is_list($product)) {
-                throw new InvalidInput(sprintf('Product at index %d must be an object.', $index));
-            }
+        foreach ($input['products'] as $product) {
 
-            /** @var array<string, mixed> $product */
-            $products[] = ProductInput::fromArray($product, $index);
+            /** @var array{width: float, height: float, length: float, weight: float} $product */
+            $products[] = ProductInput::fromArray($product);
         }
 
         return new self($products);

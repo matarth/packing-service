@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Output;
 
-use App\Service\PackingService\PackingResult;
+use App\ValueObject\PackingResult;
 
 final readonly class SuccessOutput extends AbstractOutput
 {
@@ -12,15 +12,11 @@ final readonly class SuccessOutput extends AbstractOutput
     {
     }
 
-    /** @return array{box: array{width: float, height: float, length: float}} */
+    /** @return array{box: string} */
     protected function data(): array
     {
         return [
-            'box' => [
-                'width' => $this->packingResult->width,
-                'height' => $this->packingResult->height,
-                'length' => $this->packingResult->length,
-            ],
+            'box' => $this->packingResult->containerId
         ];
     }
 
