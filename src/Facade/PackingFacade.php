@@ -28,7 +28,7 @@ final class PackingFacade
             $request = new PackingRequestDTO(
                 packingInput: $input,
                 packagings: array_map(
-                    PackagingDTO::fromEntity(...),
+                    PackagingDTO::withNormalizedRotation(...),
                     $this->packagingRepository->findAll(),
                 ),
             );

@@ -17,13 +17,20 @@ final readonly class PackagingDTO
     ) {
     }
 
-    public static function fromEntity(Packaging $packaging): self
+    public static function withNormalizedRotation(Packaging $packaging): self
     {
+        $dimensions = [
+            $packaging->getWidth(),
+            $packaging->getHeight(),
+            $packaging->getLength(),
+        ];
+        sort($dimensions, SORT_NUMERIC);
+
         return new self(
             id: $packaging->getId(),
-            width: $packaging->getWidth(),
-            height: $packaging->getHeight(),
-            length: $packaging->getLength(),
+            width: $dimensions[0],
+            height: $dimensions[1],
+            length: $dimensions[2],
             maxWeight: $packaging->getMaxWeight(),
         );
     }

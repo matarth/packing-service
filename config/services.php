@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Facade\PackingFacade;
 use App\Repository\PackagingRepository;
+use App\Service\PackingService\CachedPackingServiceDecorator;
 use App\Service\PackingService\FailoverPackingService;
 use App\Service\PackingService\LocalPackingService;
 use App\Service\PackingService\PackingServiceInterface;
@@ -13,6 +14,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Contracts\Cache\CacheInterface;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_iterator;
@@ -42,7 +45,12 @@ return static function (ContainerConfigurator $container): void {
     $services
         ->set(FailoverPackingService::class, FailoverPackingService::class)
         ->arg('$packingServices', tagged_iterator('packing.service'));
-    $services->alias(PackingServiceInterface::class, FailoverPackingService::class);
+    $services->set(CacheInterface::class, ArrayAdapter::class);
+    $services
+        ->set(CachedPackingServiceDecorator::class, CachedPackingServiceDecorator::class)
+        ->arg('$packingService', service(FailoverPackingService::class))
+        ->arg('$cache', service(CacheInterface::class));
+    $services->alias(PackingServiceInterface::class, CachedPackingServiceDecorator::class);
     $services
         ->set(PackagingRepository::class, PackagingRepository::class)
         ->arg('$entityManager', service(EntityManagerInterface::class))

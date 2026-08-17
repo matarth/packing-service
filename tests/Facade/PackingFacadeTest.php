@@ -37,7 +37,9 @@ final class PackingFacadeTest extends TestCase
             ->with(self::callback(static function (PackingRequestDTO $request) use ($input): bool {
                 return $request->packingInput === $input
                     && count($request->packagings) === 1
-                    && $request->packagings[0]->width === 2.5;
+                    && $request->packagings[0]->width === 1.0
+                    && $request->packagings[0]->height === 2.5
+                    && $request->packagings[0]->length === 3.0;
             }))
             ->willReturn(new PackingResult('small-box'));
 
