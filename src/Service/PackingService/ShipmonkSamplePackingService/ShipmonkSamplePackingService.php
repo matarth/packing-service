@@ -6,6 +6,7 @@ namespace App\Service\PackingService\ShipmonkSamplePackingService;
 
 use App\DTO\PackagingDTO;
 use App\DTO\PackingRequestDTO;
+use App\Exception\NoPackagingFitsException;
 use App\Exception\PackingProviderUnavailableException;
 use App\Service\PackingService\PackingServiceInterface;
 use App\ValueObject\PackingResult;
@@ -25,7 +26,7 @@ class ShipmonkSamplePackingService implements PackingServiceInterface
         );
 
         if ($response->unpackedItems !== [] || count($response->packedContainers) !== 1) {
-            throw new PackingProviderUnavailableException(
+            throw new NoPackagingFitsException(
                 'The Shipmonk sample packing API did not return one container that fits all products.',
             );
         }

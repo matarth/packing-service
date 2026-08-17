@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Service\PackingService;
 
 use App\DTO\PackingRequestDTO;
+use App\Exception\NoPackagingFitsException;
 use App\Exception\PackingProviderUnavailableException;
 use App\Input\PackingInput;
 use App\Input\ProductInput;
@@ -49,6 +50,27 @@ final class FailoverPackingServiceTest extends TestCase
             self::fail('Expected the last provider exception to be thrown.');
         } catch (PackingProviderUnavailableException $exception) {
             self::assertSame($lastException, $exception);
+        }
+    }
+
+    public function testDoesNotTryAnotherProviderWhenNoPackagingFits(): void
+    {
+        $request = $this->request();
+        $noFitException = new NoPackagingFitsException('No packaging fits the products.');
+        $noFitProvider = $this->createMock(PackingServiceInterface::class);
+        $noFitProvider->expects(self::once())
+            ->method('findSmallestBox')
+            ->with($request)
+            ->willThrowException($noFitException);
+        $nextProvider = $this->createMock(PackingServiceInterface::class);
+        $nextProvider->expects(self::never())->method('findSmallestBox');
+        $service = new FailoverPackingService([$noFitProvider, $nextProvider]);
+
+        try {
+            $service->findSmallestBox($request);
+            self::fail('Expected the no-fit exception to be thrown.');
+        } catch (NoPackagingFitsException $exception) {
+            self::assertSame($noFitException, $exception);
         }
     }
 
