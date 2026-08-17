@@ -4,34 +4,39 @@ declare(strict_types=1);
 
 namespace App\Facade;
 
-use App\Exception\InvalidInput;
-use App\Exception\NoPackagingAvailable;
-use App\Exception\PackingProviderUnavailable;
+use App\DTO\PackagingDTO;
+use App\DTO\PackingRequestDTO;
+use App\Exception\InvalidInputException;
 use App\Input\PackingInput;
 use App\Output\AbstractOutput;
 use App\Output\ErrorOutput;
 use App\Output\SuccessOutput;
+use App\Repository\PackagingRepository;
 use App\Service\PackingService\PackingServiceInterface;
 
 final class PackingFacade
 {
     public function __construct(
-        private PackingServiceInterface $packingService
+        private PackingServiceInterface $packingService,
+        private PackagingRepository $packagingRepository,
     ) {
     }
 
     public function findSmallestBox(PackingInput $input): AbstractOutput
     {
         try {
-            $result = $this->packingService->findSmallestBox($input);
+            $request = new PackingRequestDTO(
+                packingInput: $input,
+                packagings: array_map(
+                    PackagingDTO::fromEntity(...),
+                    $this->packagingRepository->findAll(),
+                ),
+            );
+            $result = $this->packingService->findSmallestBox($request);
 
             return new SuccessOutput($result);
-        } catch (InvalidInput $exception) {
+        } catch (InvalidInputException $exception) {
             return new ErrorOutput('invalid_input', $exception->getMessage());
-        } catch (PackingProviderUnavailable $exception) {
-            return new ErrorOutput('packing_provider_unavailable', $exception->getMessage());
-        } catch (NoPackagingAvailable $exception) {
-            return new ErrorOutput('no_packaging_available', $exception->getMessage());
         }
     }
 }

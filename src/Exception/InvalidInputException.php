@@ -6,6 +6,6 @@ namespace App\Exception;
 
 use InvalidArgumentException;
 
-final class InvalidInput extends InvalidArgumentException
+final class InvalidInputException extends InvalidArgumentException
 {
 }

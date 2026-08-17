@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Input;
 
-use App\Exception\InvalidInput;
+use App\Exception\InvalidInputException;
 
 final readonly class PackingInput
 {
@@ -12,7 +12,7 @@ final readonly class PackingInput
     public function __construct(public array $products)
     {
         if ($products === []) {
-            throw new InvalidInput('Field "products" must contain at least one product.');
+            throw new InvalidInputException('Field "products" must contain at least one product.');
         }
     }
 
@@ -24,7 +24,7 @@ final readonly class PackingInput
             !is_array($input['products']) ||
             [] === $input['products']
         ) {
-            throw new InvalidInput('Field "products" is a required field of type array.');
+            throw new InvalidInputException('Field "products" is a required field of type array.');
         }
 
         $products = [];

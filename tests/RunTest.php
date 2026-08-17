@@ -45,7 +45,12 @@ final class RunTest extends TestCase
     /** @return array{exitCode: int, output: string} */
     private function runCommand(string $input): array
     {
-        $command = sprintf('%s %s %s', escapeshellarg(PHP_BINARY), escapeshellarg(__DIR__ . '/../run.php'), escapeshellarg($input));
+        $command = sprintf(
+            '%s %s %s',
+            escapeshellarg(PHP_BINARY),
+            escapeshellarg(__DIR__ . '/../run.php'),
+            escapeshellarg($input)
+        );
         exec($command, $output, $exitCode);
 
         return ['exitCode' => $exitCode, 'output' => implode("\n", $output)];

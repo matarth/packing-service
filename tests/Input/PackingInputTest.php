@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Input;
 
-use App\Exception\InvalidInput;
+use App\Exception\InvalidInputException;
 use App\Input\PackingInput;
 use PHPUnit\Framework\TestCase;
 
@@ -30,7 +30,7 @@ final class PackingInputTest extends TestCase
     /** @dataProvider invalidInputProvider */
     public function testRejectsInvalidInput(array $input, string $message): void
     {
-        $this->expectException(InvalidInput::class);
+        $this->expectException(InvalidInputException::class);
         $this->expectExceptionMessage($message);
 
         PackingInput::fromArray($input);
@@ -41,7 +41,9 @@ final class PackingInputTest extends TestCase
     {
         yield 'missing products' => [[], 'Field "products" is a required field of type array.'];
         yield 'empty products' => [['products' => []], 'Field "products" is a required field of type array.'];
-        yield 'missing product field' => [['products' => [['width' => 1], ['hight' => 1]]], 'Missing value at index `height`'];
+        yield 'missing product field' => [
+            ['products' => [['width' => 1], ['hight' => 1]]], 'Missing value at index `height`'
+        ];
         yield 'non-positive dimension' => [['products' => [[
             'width' => 0,
             'height' => 2,
