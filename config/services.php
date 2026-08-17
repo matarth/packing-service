@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Facade\PackingFacade;
 use App\Repository\PackagingRepository;
+use App\Service\PackingService\FailoverPackingService;
 use App\Service\PackingService\LocalPackingService;
 use App\Service\PackingService\PackingServiceInterface;
 use App\Service\PackingService\ShipmonkSamplePackingService\ShipmonkSamplePackingApiClient;
@@ -14,6 +15,7 @@ use GuzzleHttp\ClientInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_iterator;
 
 return static function (ContainerConfigurator $container): void {
     $services = $container->services();
@@ -30,12 +32,17 @@ return static function (ContainerConfigurator $container): void {
 
 
     $services
-        ->set(PackingServiceInterface::class, LocalPackingService::class)
-        ->tag('packing.service');
+        ->set(LocalPackingService::class, LocalPackingService::class)
+        ->tag('packing.service', ['priority' => 100]);
 
     $services
         ->set(ShipmonkSamplePackingService::class, ShipmonkSamplePackingService::class)
+        ->arg('$client', service(ShipmonkSamplePackingApiClient::class))
         ->tag('packing.service');
+    $services
+        ->set(FailoverPackingService::class, FailoverPackingService::class)
+        ->arg('$packingServices', tagged_iterator('packing.service'));
+    $services->alias(PackingServiceInterface::class, FailoverPackingService::class);
     $services
         ->set(PackagingRepository::class, PackagingRepository::class)
         ->arg('$entityManager', service(EntityManagerInterface::class))
