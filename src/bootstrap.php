@@ -9,11 +9,13 @@ require __DIR__ . '/../vendor/autoload.php';
 
 $config = ORMSetup::createAttributeMetadataConfiguration([__DIR__], true);
 $config->setNamingStrategy(new UnderscoreNamingStrategy());
+$configuredDatabaseName = $_SERVER['PACKING_DATABASE_NAME'] ?? getenv('PACKING_DATABASE_NAME');
+$databaseName = is_string($configuredDatabaseName) ? $configuredDatabaseName : 'packing';
 
 return new EntityManager(DriverManager::getConnection([
     'driver' => 'pdo_mysql',
     'host' => 'shipmonk-packing-mysql',
     'user' => 'root',
     'password' => 'secret',
-    'dbname' => 'packing',
+    'dbname' => $databaseName,
 ]), $config);

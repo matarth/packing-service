@@ -9,6 +9,8 @@ services:
             MYSQL_ROOT_PASSWORD: secret
             MYSQL_DATABASE: packing
         hostname: mysql
+        volumes:
+          - ./data/create-test-database.sql:/docker-entrypoint-initdb.d/create-test-database.sql:ro
 
     shipmonk-packing-app:
         depends_on:

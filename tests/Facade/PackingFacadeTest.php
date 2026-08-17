@@ -12,8 +12,6 @@ use App\Input\ProductInput;
 use App\Repository\PackagingRepository;
 use App\Service\PackingService\PackingServiceInterface;
 use App\ValueObject\PackingResult;
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\EntityRepository;
 use PHPUnit\Framework\TestCase;
 
 final class PackingFacadeTest extends TestCase
@@ -24,13 +22,8 @@ final class PackingFacadeTest extends TestCase
             new ProductInput(width: 1.0, height: 2.0, length: 3.0, weight: 4.0),
         ]);
         $packagings = [new Packaging(width: 2.5, height: 3.0, length: 1.0, maxWeight: 20.0)];
-        $doctrineRepository = $this->createMock(EntityRepository::class);
-        $doctrineRepository->expects(self::once())->method('findAll')->willReturn($packagings);
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->expects(self::once())
-            ->method('getRepository')
-            ->with(Packaging::class)
-            ->willReturn($doctrineRepository);
+        $repository = $this->createMock(PackagingRepository::class);
+        $repository->expects(self::once())->method('findPotentiallyFitting')->with($input)->willReturn($packagings);
         $service = $this->createMock(PackingServiceInterface::class);
         $service->expects(self::once())
             ->method('findSmallestBox')
@@ -43,11 +36,31 @@ final class PackingFacadeTest extends TestCase
             }))
             ->willReturn(new PackingResult('small-box'));
 
-        $facade = new PackingFacade($service, new PackagingRepository($entityManager));
+        $facade = new PackingFacade($service, $repository);
 
         self::assertSame([
             'data' => ['box' => 'small-box'],
             'error' => null,
+        ], $facade->findSmallestBox($input)->jsonSerialize());
+    }
+
+    public function testReturnsNoFitErrorWithoutCallingThePackingService(): void
+    {
+        $input = new PackingInput([
+            new ProductInput(width: 10.0, height: 10.0, length: 10.0, weight: 4.0),
+        ]);
+        $repository = $this->createMock(PackagingRepository::class);
+        $repository->expects(self::once())->method('findPotentiallyFitting')->with($input)->willReturn([]);
+        $service = $this->createMock(PackingServiceInterface::class);
+        $service->expects(self::never())->method('findSmallestBox');
+        $facade = new PackingFacade($service, $repository);
+
+        self::assertSame([
+            'data' => null,
+            'error' => [
+                'code' => 'no_packaging_fits',
+                'message' => 'No available packaging can fit the products.',
+            ],
         ], $facade->findSmallestBox($input)->jsonSerialize());
     }
 }

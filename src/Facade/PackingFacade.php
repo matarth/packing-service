@@ -7,6 +7,7 @@ namespace App\Facade;
 use App\DTO\PackagingDTO;
 use App\DTO\PackingRequestDTO;
 use App\Exception\InvalidInputException;
+use App\Exception\NoPackagingFitsException;
 use App\Input\PackingInput;
 use App\Output\AbstractOutput;
 use App\Output\ErrorOutput;
@@ -25,11 +26,16 @@ final class PackingFacade
     public function findSmallestBox(PackingInput $input): AbstractOutput
     {
         try {
+            $packagings = $this->packagingRepository->findPotentiallyFitting($input);
+            if ($packagings === []) {
+                throw new NoPackagingFitsException('No available packaging can fit the products.');
+            }
+
             $request = new PackingRequestDTO(
                 packingInput: $input,
                 packagings: array_map(
                     PackagingDTO::withNormalizedRotation(...),
-                    $this->packagingRepository->findAll(),
+                    $packagings,
                 ),
             );
             $result = $this->packingService->findSmallestBox($request);
@@ -37,6 +43,8 @@ final class PackingFacade
             return new SuccessOutput($result);
         } catch (InvalidInputException $exception) {
             return new ErrorOutput('invalid_input', $exception->getMessage());
+        } catch (NoPackagingFitsException $exception) {
+            return new ErrorOutput('no_packaging_fits', $exception->getMessage());
         }
     }
 }

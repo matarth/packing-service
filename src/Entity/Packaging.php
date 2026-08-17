@@ -31,6 +31,15 @@ class Packaging
     private float $length;
 
     #[ORM\Column(type: Types::FLOAT)]
+    private float $smallEdge;
+
+    #[ORM\Column(type: Types::FLOAT)]
+    private float $middleEdge;
+
+    #[ORM\Column(type: Types::FLOAT)]
+    private float $longEdge;
+
+    #[ORM\Column(type: Types::FLOAT)]
     private float $maxWeight;
 
     public function __construct(float $width, float $height, float $length, float $maxWeight)
@@ -38,6 +47,11 @@ class Packaging
         $this->width = $width;
         $this->height = $height;
         $this->length = $length;
+        $edges = [$width, $height, $length];
+        sort($edges, SORT_NUMERIC);
+        $this->smallEdge = $edges[0];
+        $this->middleEdge = $edges[1];
+        $this->longEdge = $edges[2];
         $this->maxWeight = $maxWeight;
     }
 
@@ -59,6 +73,21 @@ class Packaging
     public function getLength(): float
     {
         return $this->length;
+    }
+
+    public function getSmallEdge(): float
+    {
+        return $this->smallEdge;
+    }
+
+    public function getMiddleEdge(): float
+    {
+        return $this->middleEdge;
+    }
+
+    public function getLongEdge(): float
+    {
+        return $this->longEdge;
     }
 
     public function getMaxWeight(): float
