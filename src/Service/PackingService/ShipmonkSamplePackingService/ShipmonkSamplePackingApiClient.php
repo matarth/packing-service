@@ -21,8 +21,8 @@ final readonly class ShipmonkSamplePackingApiClient
     }
 
     /**
-     * @param list<array<string, bool|float|int|string>> $containers
-     * @param list<array<string, bool|float|int|string>> $items
+     * @param list<array<string, bool|int|string>> $containers
+     * @param list<array<string, bool|int|string>> $items
      */
     public function sendPackRequest(array $containers, array $items): ShipmonkSampleApiResponseDTO
     {

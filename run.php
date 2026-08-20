@@ -30,9 +30,12 @@ try {
     /** @var PackingFacade $facade */
     $facade = (require __DIR__ . '/src/container.php')->get(PackingFacade::class);
     $output = $facade->findSmallestBox($input);
-    $exitCode = 0;
+    $exitCode = $output instanceof ErrorOutput ? 1 : 0;
 } catch (InvalidInputException $exception) {
     $output = new ErrorOutput('invalid_input', $exception->getMessage());
+    $exitCode = 1;
+} catch (\Throwable) {
+    $output = new ErrorOutput('operational_error', 'Unable to calculate packaging at this time.');
     $exitCode = 1;
 }
 

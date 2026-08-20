@@ -31,7 +31,7 @@ final readonly class ProductInput
         }
     }
 
-    /** @param array{width: mixed, height: mixed, length: mixed, weight: mixed} $input */
+    /** @param array<mixed, mixed> $input */
     public static function fromArray(array $input): self
     {
         return new self(
@@ -42,7 +42,7 @@ final readonly class ProductInput
         );
     }
 
-    /** @param array<string, mixed> $input */
+    /** @param array<mixed, mixed> $input */
     private static function floatField(array $input, string $field): float
     {
         if (!array_key_exists($field, $input)) {

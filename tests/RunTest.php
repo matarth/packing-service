@@ -42,6 +42,17 @@ final class RunTest extends TestCase
         ], json_decode($result['output'], true, 512, JSON_THROW_ON_ERROR));
     }
 
+    public function testReturnsStructuredErrorForAProductThatIsNotAnObject(): void
+    {
+        $result = $this->runCommand('{"products":[true]}');
+
+        self::assertSame(1, $result['exitCode'], $result['output']);
+        self::assertSame([
+            'data' => null,
+            'error' => ['code' => 'invalid_input', 'message' => 'Each product must be an object.'],
+        ], json_decode($result['output'], true, 512, JSON_THROW_ON_ERROR));
+    }
+
     /** @return array{exitCode: int, output: string} */
     private function runCommand(string $input): array
     {

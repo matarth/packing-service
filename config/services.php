@@ -14,7 +14,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Contracts\Cache\CacheInterface;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
@@ -36,7 +36,7 @@ return static function (ContainerConfigurator $container): void {
 
     $services
         ->set(LocalPackingService::class, LocalPackingService::class)
-        ->tag('packing.service', ['priority' => 100]);
+        ->tag('packing.service', ['priority' => -100]);
 
     $services
         ->set(ShipmonkSamplePackingService::class, ShipmonkSamplePackingService::class)
@@ -45,7 +45,9 @@ return static function (ContainerConfigurator $container): void {
     $services
         ->set(FailoverPackingService::class, FailoverPackingService::class)
         ->arg('$packingServices', tagged_iterator('packing.service'));
-    $services->set(CacheInterface::class, ArrayAdapter::class);
+    $services
+        ->set(CacheInterface::class, FilesystemAdapter::class)
+        ->args(['packing', 300, __DIR__ . '/../var/cache']);
     $services
         ->set(CachedPackingServiceDecorator::class, CachedPackingServiceDecorator::class)
         ->arg('$packingService', service(FailoverPackingService::class))

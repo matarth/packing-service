@@ -7,6 +7,7 @@ namespace App\Tests\Service\PackingService\ShipmonkSamplePackingService;
 use App\DTO\PackagingDTO;
 use App\DTO\PackingRequestDTO;
 use App\Exception\NoPackagingFitsException;
+use App\Exception\PackingProviderUnavailableException;
 use App\Input\PackingInput;
 use App\Input\ProductInput;
 use App\Service\PackingService\ShipmonkSamplePackingService\ShipmonkSamplePackingApiClient;
@@ -54,17 +55,17 @@ final class ShipmonkSamplePackingServiceTest extends TestCase
         self::assertSame([
             'containers' => [[
                 'id' => '1',
-                'width' => 4,
-                'length' => 6,
-                'depth' => 5,
-                'maxWeight' => 7,
+                'width' => 4500,
+                'length' => 6125,
+                'depth' => 5250,
+                'maxWeight' => 7875,
             ]],
             'items' => [[
                 'id' => 'product-0',
-                'width' => 1,
-                'length' => 3,
-                'depth' => 2,
-                'weight' => 4,
+                'width' => 1250,
+                'length' => 3750,
+                'depth' => 2500,
+                'weight' => 4125,
             ]],
         ], json_decode((string) $httpRequest->getBody(), true, 512, JSON_THROW_ON_ERROR));
     }
@@ -85,13 +86,29 @@ final class ShipmonkSamplePackingServiceTest extends TestCase
         $service->findSmallestBox($this->request());
     }
 
+    public function testRejectsAResponseWithAnUnknownContainer(): void
+    {
+        $handler = new MockHandler([
+            new Response(200, [], '{"packedContainers":[{"containerId":"unknown","items":[]}],"unpackedItems":[]}'),
+        ]);
+        $service = new ShipmonkSamplePackingService(
+            new ShipmonkSamplePackingApiClient(new Client([
+                'handler' => HandlerStack::create($handler),
+                'http_errors' => false,
+            ])),
+        );
+
+        $this->expectException(PackingProviderUnavailableException::class);
+        $service->findSmallestBox($this->request());
+    }
+
     private function request(): PackingRequestDTO
     {
         return new PackingRequestDTO(
             new PackingInput([
-                new ProductInput(width: 1.0, height: 2.0, length: 3.0, weight: 4.0),
+                new ProductInput(width: 1.25, height: 2.5, length: 3.75, weight: 4.125),
             ]),
-            [new PackagingDTO(id: 1, width: 4.0, height: 5.0, length: 6.0, maxWeight: 7.0)],
+            [new PackagingDTO(id: 1, width: 4.5, height: 5.25, length: 6.125, maxWeight: 7.875)],
         );
     }
 }

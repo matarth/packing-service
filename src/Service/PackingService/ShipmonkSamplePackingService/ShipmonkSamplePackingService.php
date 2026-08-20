@@ -13,6 +13,13 @@ use App\ValueObject\PackingResult;
 
 class ShipmonkSamplePackingService implements PackingServiceInterface
 {
+    /**
+     * The sample API accepts integer measurements only. Values are represented
+     * in thousandths of the application's input unit, retaining millimetre-like
+     * precision without changing the relative dimensions or weights.
+     */
+    private const INTEGER_UNIT_SCALE = 1000;
+
     public function __construct(
         private readonly ShipmonkSamplePackingApiClient $client,
     ) {
@@ -34,12 +41,20 @@ class ShipmonkSamplePackingService implements PackingServiceInterface
         /** @var array{containerId: string} $packedContainer */
         $packedContainer = $response->packedContainers[0];
 
-        return new PackingResult($packedContainer['containerId']);
+        foreach ($request->packagings as $packaging) {
+            if ((string) $packaging->id === $packedContainer['containerId']) {
+                return new PackingResult($packedContainer['containerId']);
+            }
+        }
+
+        throw new PackingProviderUnavailableException(
+            'The Shipmonk sample packing API returned a container that was not requested.',
+        );
     }
 
     /**
      * @param list<PackagingDTO> $packagings
-     * @return list<array{id: string, width: float, length: float, depth: float, maxWeight: float}>
+     * @return list<array{id: string, width: int, length: int, depth: int, maxWeight: int}>
      */
     private function createContainers(array $packagings): array
     {
@@ -51,30 +66,43 @@ class ShipmonkSamplePackingService implements PackingServiceInterface
 
             $containers[] = [
                 'id' => (string) $packaging->id,
-                'width' => $packaging->width,
-                'length' => $packaging->length,
-                'depth' => $packaging->height,
-                'maxWeight' => $packaging->maxWeight,
+                'width' => self::toIntegerUnit($packaging->width),
+                'length' => self::toIntegerUnit($packaging->length),
+                'depth' => self::toIntegerUnit($packaging->height),
+                'maxWeight' => self::toIntegerUnit($packaging->maxWeight),
             ];
         }
 
         return $containers;
     }
 
-    /** @return list<array{id: string, width: float, length: float, depth: float, weight: float}> */
+    /** @return list<array{id: string, width: int, length: int, depth: int, weight: int}> */
     private function createItems(PackingRequestDTO $request): array
     {
         $items = [];
         foreach ($request->packingInput->products as $index => $product) {
             $items[] = [
                 'id' => sprintf('product-%d', $index),
-                'width' => $product->width,
-                'length' => $product->length,
-                'depth' => $product->height,
-                'weight' => $product->weight,
+                'width' => self::toIntegerUnit($product->width),
+                'length' => self::toIntegerUnit($product->length),
+                'depth' => self::toIntegerUnit($product->height),
+                'weight' => self::toIntegerUnit($product->weight),
             ];
         }
 
         return $items;
+    }
+
+    private static function toIntegerUnit(float $value): int
+    {
+        $integerValue = round($value * self::INTEGER_UNIT_SCALE, 0, PHP_ROUND_HALF_UP);
+
+        if (!is_finite($integerValue) || $integerValue > PHP_INT_MAX || $integerValue < PHP_INT_MIN) {
+            throw new PackingProviderUnavailableException(
+                'Packing measurement cannot be converted to the sample API unit.',
+            );
+        }
+
+        return (int) $integerValue;
     }
 }

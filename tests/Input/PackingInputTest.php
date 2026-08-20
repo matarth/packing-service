@@ -41,6 +41,8 @@ final class PackingInputTest extends TestCase
     {
         yield 'missing products' => [[], 'Field "products" is a required field of type array.'];
         yield 'empty products' => [['products' => []], 'Field "products" is a required field of type array.'];
+        yield 'non-array product' => [['products' => [true]], 'Each product must be an object.'];
+        yield 'null product' => [['products' => [null]], 'Each product must be an object.'];
         yield 'missing product field' => [
             ['products' => [['width' => 1], ['hight' => 1]]], 'Missing value at index `height`'
         ];

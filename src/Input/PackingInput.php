@@ -29,8 +29,10 @@ final readonly class PackingInput
 
         $products = [];
         foreach ($input['products'] as $product) {
+            if (!is_array($product)) {
+                throw new InvalidInputException('Each product must be an object.');
+            }
 
-            /** @var array{width: float, height: float, length: float, weight: float} $product */
             $products[] = ProductInput::fromArray($product);
         }
 
