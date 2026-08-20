@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Service\PackingService\ShipmonkSamplePackingService;
 
 use App\Exception\InvalidInputException;
-use App\Exception\PackingProviderUnavailableException;
+use App\Exception\PackingProviderException;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use JsonException;
@@ -38,27 +38,19 @@ final readonly class ShipmonkSamplePackingApiClient
                 'headers' => ['Content-Type' => 'application/json'],
             ]);
         } catch (\Throwable $exception) {
-            throw new PackingProviderUnavailableException(
+            throw new PackingProviderException(
                 'The Shipmonk sample packing API is unavailable.',
                 previous: $exception,
             );
         }
 
-        if ($response->getStatusCode() >= 500 || $response->getStatusCode() === 429) {
-            throw new PackingProviderUnavailableException(
-                'The Shipmonk sample packing API is unavailable.',
-            );
-        }
-
-        if (in_array($response->getStatusCode(), [400, 422], true)) {
-            throw new InvalidInputException('The Shipmonk sample packing API rejected the packing request.');
-        }
-
-        if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 300) {
-            throw new PackingProviderUnavailableException('The Shipmonk sample packing API is unavailable.');
-        }
-
-        return $this->parseResponse((string) $response->getBody());
+        $statusCode = $response->getStatusCode();
+        return match (true) {
+            $statusCode >= 500, $statusCode === 429 => throw new PackingProviderException('The Shipmonk sample packing API is unavailable.'),
+            $statusCode === 400, $statusCode === 422 => throw new InvalidInputException('The Shipmonk sample packing API rejected the packing request.'),
+            $statusCode < 200, $statusCode >= 300 => throw new PackingProviderException('The Shipmonk sample packing API is unavailable.'),
+            default => $this->parseResponse((string) $response->getBody()),
+        };
     }
 
     private function parseResponse(string $body): ShipmonkSampleApiResponseDTO
@@ -66,14 +58,14 @@ final readonly class ShipmonkSamplePackingApiClient
         try {
             $response = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException $exception) {
-            throw new PackingProviderUnavailableException(
+            throw new PackingProviderException(
                 'The Shipmonk sample packing API returned invalid JSON.',
                 previous: $exception,
             );
         }
 
         if (!is_array($response) || array_is_list($response)) {
-            throw new PackingProviderUnavailableException(
+            throw new PackingProviderException(
                 'The Shipmonk sample packing API returned an invalid response.',
             );
         }

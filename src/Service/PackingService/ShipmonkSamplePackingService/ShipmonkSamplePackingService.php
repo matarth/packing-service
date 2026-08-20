@@ -6,10 +6,10 @@ namespace App\Service\PackingService\ShipmonkSamplePackingService;
 
 use App\DTO\PackagingDTO;
 use App\DTO\PackingRequestDTO;
+use App\DTO\PackingResult;
 use App\Exception\NoPackagingFitsException;
-use App\Exception\PackingProviderUnavailableException;
+use App\Exception\PackingProviderException;
 use App\Service\PackingService\PackingServiceInterface;
-use App\ValueObject\PackingResult;
 
 class ShipmonkSamplePackingService implements PackingServiceInterface
 {
@@ -47,7 +47,7 @@ class ShipmonkSamplePackingService implements PackingServiceInterface
             }
         }
 
-        throw new PackingProviderUnavailableException(
+        throw new PackingProviderException(
             'The Shipmonk sample packing API returned a container that was not requested.',
         );
     }
@@ -61,7 +61,7 @@ class ShipmonkSamplePackingService implements PackingServiceInterface
         $containers = [];
         foreach ($packagings as $packaging) {
             if ($packaging->id === null) {
-                throw new PackingProviderUnavailableException('Available packaging must have an identifier.');
+                throw new PackingProviderException('Available packaging must have an identifier.');
             }
 
             $containers[] = [
@@ -98,7 +98,7 @@ class ShipmonkSamplePackingService implements PackingServiceInterface
         $integerValue = round($value * self::INTEGER_UNIT_SCALE, 0, PHP_ROUND_HALF_UP);
 
         if (!is_finite($integerValue) || $integerValue > PHP_INT_MAX || $integerValue < PHP_INT_MIN) {
-            throw new PackingProviderUnavailableException(
+            throw new PackingProviderException(
                 'Packing measurement cannot be converted to the sample API unit.',
             );
         }

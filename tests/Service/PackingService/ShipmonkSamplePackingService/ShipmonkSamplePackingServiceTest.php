@@ -7,7 +7,7 @@ namespace App\Tests\Service\PackingService\ShipmonkSamplePackingService;
 use App\DTO\PackagingDTO;
 use App\DTO\PackingRequestDTO;
 use App\Exception\NoPackagingFitsException;
-use App\Exception\PackingProviderUnavailableException;
+use App\Exception\PackingProviderException;
 use App\Input\PackingInput;
 use App\Input\ProductInput;
 use App\Service\PackingService\ShipmonkSamplePackingService\ShipmonkSamplePackingApiClient;
@@ -98,7 +98,7 @@ final class ShipmonkSamplePackingServiceTest extends TestCase
             ])),
         );
 
-        $this->expectException(PackingProviderUnavailableException::class);
+        $this->expectException(PackingProviderException::class);
         $service->findSmallestBox($this->request());
     }
 

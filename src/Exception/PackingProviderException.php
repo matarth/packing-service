@@ -6,6 +6,6 @@ namespace App\Exception;
 
 use RuntimeException;
 
-final class PackingProviderUnavailableException extends RuntimeException
+final class PackingProviderException extends RuntimeException
 {
 }

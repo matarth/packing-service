@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Service\PackingService;
 
 use App\DTO\PackingRequestDTO;
-use App\Exception\PackingProviderUnavailableException;
-use App\ValueObject\PackingResult;
+use App\DTO\PackingResult;
+use App\Exception\PackingProviderException;
 use LogicException;
 use Psr\Log\LoggerInterface;
 
@@ -26,7 +26,7 @@ final readonly class FailoverPackingService implements PackingServiceInterface
         foreach ($this->packingServices as $packingService) {
             try {
                 return $packingService->findSmallestBox($request);
-            } catch (PackingProviderUnavailableException $exception) {
+            } catch (PackingProviderException $exception) {
                 $this->logger->warning('Packing provider unavailable.', [
                     'provider' => $packingService::class,
                     'exception' => $exception,

@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Tests\Service\PackingService;
 
 use App\DTO\PackingRequestDTO;
+use App\DTO\PackingResult;
 use App\Exception\NoPackagingFitsException;
-use App\Exception\PackingProviderUnavailableException;
+use App\Exception\PackingProviderException;
 use App\Input\PackingInput;
 use App\Input\ProductInput;
 use App\Service\PackingService\FailoverPackingService;
 use App\Service\PackingService\PackingServiceInterface;
-use App\ValueObject\PackingResult;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -37,7 +37,7 @@ final class FailoverPackingServiceTest extends TestCase
         $unavailableProvider->expects(self::once())
             ->method('findSmallestBox')
             ->with($request)
-            ->willThrowException(new PackingProviderUnavailableException('Unavailable'));
+            ->willThrowException(new PackingProviderException('Unavailable'));
         $availableProvider = $this->createMock(PackingServiceInterface::class);
         $availableProvider->expects(self::once())
             ->method('findSmallestBox')
@@ -52,7 +52,7 @@ final class FailoverPackingServiceTest extends TestCase
     public function testLogsAnUnavailableProviderBeforeUsingTheNextProvider(): void
     {
         $request = $this->request();
-        $exception = new PackingProviderUnavailableException('Unavailable');
+        $exception = new PackingProviderException('Unavailable');
         $unavailableProvider = $this->createMock(PackingServiceInterface::class);
         $unavailableProvider->method('findSmallestBox')->with($request)->willThrowException($exception);
         $availableProvider = $this->createMock(PackingServiceInterface::class);
@@ -71,8 +71,8 @@ final class FailoverPackingServiceTest extends TestCase
 
     public function testRethrowsTheLastProviderUnavailableException(): void
     {
-        $firstException = new PackingProviderUnavailableException('First provider unavailable.');
-        $lastException = new PackingProviderUnavailableException('Last provider unavailable.');
+        $firstException = new PackingProviderException('First provider unavailable.');
+        $lastException = new PackingProviderException('Last provider unavailable.');
         $firstProvider = $this->createMock(PackingServiceInterface::class);
         $firstProvider->method('findSmallestBox')->willThrowException($firstException);
         $lastProvider = $this->createMock(PackingServiceInterface::class);
@@ -82,7 +82,7 @@ final class FailoverPackingServiceTest extends TestCase
         try {
             $service->findSmallestBox($this->request());
             self::fail('Expected the last provider exception to be thrown.');
-        } catch (PackingProviderUnavailableException $exception) {
+        } catch (PackingProviderException $exception) {
             self::assertSame($lastException, $exception);
         }
     }

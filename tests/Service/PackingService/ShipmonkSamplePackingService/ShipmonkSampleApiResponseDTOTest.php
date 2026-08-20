@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Service\PackingService\ShipmonkSamplePackingService;
 
-use App\Exception\PackingProviderUnavailableException;
+use App\Exception\PackingProviderException;
 use App\Service\PackingService\ShipmonkSamplePackingService\ShipmonkSampleApiResponseDTO;
 use PHPUnit\Framework\TestCase;
 
@@ -36,7 +36,7 @@ final class ShipmonkSampleApiResponseDTOTest extends TestCase
 
     public function testRejectsInvalidPackedItemFromConstructor(): void
     {
-        $this->expectException(PackingProviderUnavailableException::class);
+        $this->expectException(PackingProviderException::class);
 
         new ShipmonkSampleApiResponseDTO(
             packedContainers: [[
@@ -50,7 +50,7 @@ final class ShipmonkSampleApiResponseDTOTest extends TestCase
 
     public function testRejectsObjectWhereAnApiListIsExpected(): void
     {
-        $this->expectException(PackingProviderUnavailableException::class);
+        $this->expectException(PackingProviderException::class);
 
         ShipmonkSampleApiResponseDTO::fromArray([
             'packedContainers' => ['containerId' => 'box-1'],

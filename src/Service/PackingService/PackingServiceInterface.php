@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Service\PackingService;
 
 use App\DTO\PackingRequestDTO;
-use App\ValueObject\PackingResult;
+use App\DTO\PackingResult;
 
 interface PackingServiceInterface
 {

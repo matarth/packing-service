@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service\PackingService\ShipmonkSamplePackingService;
 
-use App\Exception\PackingProviderUnavailableException;
+use App\Exception\PackingProviderException;
 
 final readonly class ShipmonkSampleApiResponseDTO
 {
@@ -17,7 +17,7 @@ final readonly class ShipmonkSampleApiResponseDTO
         public array $unpackedItems,
     ) {
         if (!array_is_list($packedContainers) || !array_is_list($unpackedItems)) {
-            throw new PackingProviderUnavailableException(
+            throw new PackingProviderException(
                 'The Shipmonk sample packing API returned an invalid response.',
             );
         }
@@ -36,7 +36,7 @@ final readonly class ShipmonkSampleApiResponseDTO
             !is_array($packedContainers) || !array_is_list($packedContainers) ||
             !is_array($unpackedItems) || !array_is_list($unpackedItems)
         ) {
-            throw new PackingProviderUnavailableException(
+            throw new PackingProviderException(
                 'The Shipmonk sample packing API returned an invalid response.',
             );
         }
@@ -49,7 +49,7 @@ final readonly class ShipmonkSampleApiResponseDTO
     {
         foreach ($unpackedItems as $itemId) {
             if (!is_string($itemId)) {
-                throw new PackingProviderUnavailableException(
+                throw new PackingProviderException(
                     'The Shipmonk sample packing API returned an invalid response.',
                 );
             }
@@ -61,7 +61,7 @@ final readonly class ShipmonkSampleApiResponseDTO
     {
         foreach ($packedContainers as $packedContainer) {
             if (!is_array($packedContainer) || array_is_list($packedContainer)) {
-                throw new PackingProviderUnavailableException(
+                throw new PackingProviderException(
                     'The Shipmonk sample packing API returned an invalid response.',
                 );
             }
@@ -73,14 +73,14 @@ final readonly class ShipmonkSampleApiResponseDTO
                 !isset($packedContainer['volumeUtilization']) ||
                 (!is_int($packedContainer['volumeUtilization']) && !is_float($packedContainer['volumeUtilization']))
             ) {
-                throw new PackingProviderUnavailableException(
+                throw new PackingProviderException(
                     'The Shipmonk sample packing API returned an invalid response.',
                 );
             }
 
             foreach ($packedContainer['items'] as $item) {
                 if (!is_array($item) || array_is_list($item)) {
-                    throw new PackingProviderUnavailableException(
+                    throw new PackingProviderException(
                         'The Shipmonk sample packing API returned an invalid response.',
                     );
                 }
@@ -94,14 +94,14 @@ final readonly class ShipmonkSampleApiResponseDTO
     private static function validatePackedItem(array $item): void
     {
         if (!isset($item['itemId']) || !is_string($item['itemId'])) {
-            throw new PackingProviderUnavailableException(
+            throw new PackingProviderException(
                 'The Shipmonk sample packing API returned an invalid response.',
             );
         }
 
         foreach (['x', 'y', 'z', 'width', 'length', 'depth'] as $field) {
             if (!isset($item[$field]) || !is_int($item[$field])) {
-                throw new PackingProviderUnavailableException(
+                throw new PackingProviderException(
                     'The Shipmonk sample packing API returned an invalid response.',
                 );
             }

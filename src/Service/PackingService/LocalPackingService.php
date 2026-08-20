@@ -6,9 +6,9 @@ namespace App\Service\PackingService;
 
 use App\DTO\PackagingDTO;
 use App\DTO\PackingRequestDTO;
+use App\DTO\PackingResult;
 use App\Exception\NoPackagingFitsException;
 use App\Input\ProductInput;
-use App\ValueObject\PackingResult;
 
 class LocalPackingService implements PackingServiceInterface
 {

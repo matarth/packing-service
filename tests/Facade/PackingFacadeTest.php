@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Tests\Facade;
 
 use App\DTO\PackingRequestDTO;
+use App\DTO\PackingResult;
 use App\Entity\Packaging;
-use App\Exception\PackingProviderUnavailableException;
+use App\Exception\PackingProviderException;
 use App\Facade\PackingFacade;
 use App\Input\PackingInput;
 use App\Input\ProductInput;
 use App\Repository\PackagingRepository;
 use App\Service\PackingService\PackingServiceInterface;
-use App\ValueObject\PackingResult;
 use PHPUnit\Framework\TestCase;
 
 final class PackingFacadeTest extends TestCase
@@ -77,7 +77,7 @@ final class PackingFacadeTest extends TestCase
         $repository->method('findPotentiallyFitting')->willReturn([new Packaging(2.5, 3.0, 1.0, 20.0)]);
         $service = $this->createMock(PackingServiceInterface::class);
         $service->method('findSmallestBox')->willThrowException(
-            new PackingProviderUnavailableException('Provider unavailable.'),
+            new PackingProviderException('Provider unavailable.'),
         );
 
         $facade = new PackingFacade($service, $repository);

@@ -8,7 +8,7 @@ use App\DTO\PackagingDTO;
 use App\DTO\PackingRequestDTO;
 use App\Exception\InvalidInputException;
 use App\Exception\NoPackagingFitsException;
-use App\Exception\PackingProviderUnavailableException;
+use App\Exception\PackingProviderException;
 use App\Input\PackingInput;
 use App\Output\AbstractOutput;
 use App\Output\ErrorOutput;
@@ -46,7 +46,7 @@ final class PackingFacade
             return new ErrorOutput('invalid_input', $exception->getMessage());
         } catch (NoPackagingFitsException $exception) {
             return new ErrorOutput('no_packaging_fits', $exception->getMessage());
-        } catch (PackingProviderUnavailableException $exception) {
+        } catch (PackingProviderException $exception) {
             return new ErrorOutput('packing_provider_unavailable', $exception->getMessage());
         } catch (\Throwable) {
             return new ErrorOutput('operational_error', 'Unable to calculate packaging at this time.');

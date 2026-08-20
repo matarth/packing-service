@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Service\PackingService\ShipmonkSamplePackingService;
 
 use App\Exception\InvalidInputException;
-use App\Exception\PackingProviderUnavailableException;
+use App\Exception\PackingProviderException;
 use App\Service\PackingService\ShipmonkSamplePackingService\ShipmonkSamplePackingApiClient;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
@@ -50,7 +50,7 @@ final class ShipmonkSamplePackingApiClientTest extends TestCase
     {
         $client = new ShipmonkSamplePackingApiClient(httpClient: $this->httpClientResponding(500, '{}'));
 
-        $this->expectException(PackingProviderUnavailableException::class);
+        $this->expectException(PackingProviderException::class);
         $client->sendPackRequest(
             [['id' => 'box', 'width' => 1, 'length' => 1, 'depth' => 1, 'maxWeight' => 1]],
             [['id' => 'item', 'width' => 1, 'length' => 1, 'depth' => 1, 'weight' => 1]],
@@ -66,7 +66,7 @@ final class ShipmonkSamplePackingApiClientTest extends TestCase
             ),
         );
 
-        $this->expectException(PackingProviderUnavailableException::class);
+        $this->expectException(PackingProviderException::class);
         $client->sendPackRequest(
             [['id' => 'box', 'width' => 1, 'length' => 1, 'depth' => 1, 'maxWeight' => 1]],
             [['id' => 'item', 'width' => 1, 'length' => 1, 'depth' => 1, 'weight' => 1]],

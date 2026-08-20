@@ -6,8 +6,8 @@ namespace App\Service\PackingService;
 
 use App\DTO\PackagingDTO;
 use App\DTO\PackingRequestDTO;
+use App\DTO\PackingResult;
 use App\Input\ProductInput;
-use App\ValueObject\PackingResult;
 use Psr\Cache\CacheItemInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 

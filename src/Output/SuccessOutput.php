@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Output;
 
-use App\ValueObject\PackingResult;
+use App\DTO\PackingResult;
 
 final readonly class SuccessOutput extends AbstractOutput
 {

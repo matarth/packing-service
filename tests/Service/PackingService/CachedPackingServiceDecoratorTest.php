@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Service\PackingService;
 
-use App\DTO\PackingRequestDTO;
 use App\DTO\PackagingDTO;
-use App\Exception\PackingProviderUnavailableException;
+use App\DTO\PackingRequestDTO;
+use App\DTO\PackingResult;
+use App\Exception\PackingProviderException;
 use App\Input\PackingInput;
 use App\Input\ProductInput;
 use App\Service\PackingService\CachedPackingServiceDecorator;
 use App\Service\PackingService\PackingServiceInterface;
-use App\ValueObject\PackingResult;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
@@ -87,14 +87,14 @@ final class CachedPackingServiceDecoratorTest extends TestCase
         $packingService->expects(self::exactly(2))
             ->method('findSmallestBox')
             ->with($request)
-            ->willThrowException(new PackingProviderUnavailableException('Unavailable.'));
+            ->willThrowException(new PackingProviderException('Unavailable.'));
         $service = new CachedPackingServiceDecorator($packingService, new ArrayAdapter());
 
         for ($ii = 0; $ii < 2; $ii++) {
             try {
                 $service->findSmallestBox($request);
                 self::fail('Expected the provider exception to be thrown.');
-            } catch (PackingProviderUnavailableException) {
+            } catch (PackingProviderException) {
             }
         }
     }
