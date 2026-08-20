@@ -6,6 +6,7 @@ namespace App\Tests\Input;
 
 use App\Exception\InvalidInputException;
 use App\Input\PackingInput;
+use App\Input\ProductInput;
 use PHPUnit\Framework\TestCase;
 
 final class PackingInputTest extends TestCase
@@ -25,6 +26,19 @@ final class PackingInputTest extends TestCase
         self::assertSame(2.0, $input->products[0]->height);
         self::assertSame(3.5, $input->products[0]->length);
         self::assertSame(4.0, $input->products[0]->weight);
+    }
+
+    public function testCreatesProductsInCanonicalOrientation(): void
+    {
+        $product = new ProductInput(width: 3.0, height: 1.0, length: 2.0, weight: 4.0);
+
+        $input = new PackingInput([$product]);
+
+        self::assertSame(1.0, $input->products[0]->width);
+        self::assertSame(2.0, $input->products[0]->height);
+        self::assertSame(3.0, $input->products[0]->length);
+        self::assertSame(4.0, $input->products[0]->weight);
+        self::assertSame(3.0, $product->width);
     }
 
     /** @dataProvider invalidInputProvider */

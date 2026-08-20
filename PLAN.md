@@ -99,12 +99,11 @@ provider. Successful box selections and successful "no box fits" outcomes are
 cached for a constant TTL of **five minutes**. Exceptions, malformed results,
 and input-validation errors are never cached.
 
-Generate the cache key from a canonical copy of the request so package order
-does not affect the key. The canonicalizer must preserve all fields that can
-affect selection and sort packages deterministically. It is a cache-key
-responsibility, not a standalone preprocessing layer; do not mutate or
-reorder the request passed to providers unless their individual contract
-requires it.
+Create each rotatable product in a canonical dimension orientation at the
+input DTO seam. Repository filtering, cache keys, and packing providers all
+consume that same immutable representation. The cache-key canonicalizer must
+preserve every field that can affect selection and sort product and packaging
+collections deterministically so collection order does not affect identity.
 
 Use an injectable cache abstraction/adapter. The initial implementation may be
 an in-memory cache appropriate for the CLI process, unless the exercise

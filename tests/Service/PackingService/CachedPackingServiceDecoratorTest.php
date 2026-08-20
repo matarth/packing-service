@@ -53,6 +53,33 @@ final class CachedPackingServiceDecoratorTest extends TestCase
         self::assertSame('box-1', $service->findSmallestBox($secondRequest)->containerId);
     }
 
+    public function testCachesEveryRotationOfAProductAsTheSameRequest(): void
+    {
+        $requests = array_map(
+            fn (array $dimensions): PackingRequestDTO => $this->requestWithProducts([
+                new ProductInput(...$dimensions, weight: 4.0),
+            ]),
+            [
+                ['width' => 1.0, 'height' => 2.0, 'length' => 3.0],
+                ['width' => 1.0, 'height' => 3.0, 'length' => 2.0],
+                ['width' => 2.0, 'height' => 1.0, 'length' => 3.0],
+                ['width' => 2.0, 'height' => 3.0, 'length' => 1.0],
+                ['width' => 3.0, 'height' => 1.0, 'length' => 2.0],
+                ['width' => 3.0, 'height' => 2.0, 'length' => 1.0],
+            ],
+        );
+        $packingService = $this->createMock(PackingServiceInterface::class);
+        $packingService->expects(self::once())
+            ->method('findSmallestBox')
+            ->with($requests[0])
+            ->willReturn(new PackingResult('box-1'));
+        $service = new CachedPackingServiceDecorator($packingService, new ArrayAdapter());
+
+        foreach ($requests as $request) {
+            self::assertSame('box-1', $service->findSmallestBox($request)->containerId);
+        }
+    }
+
     public function testDoesNotCacheProviderFailures(): void
     {
         $request = $this->request();

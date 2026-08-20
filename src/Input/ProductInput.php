@@ -42,6 +42,19 @@ final readonly class ProductInput
         );
     }
 
+    public static function withCanonicalOrientation(self $product): self
+    {
+        $dimensions = [$product->width, $product->height, $product->length];
+        sort($dimensions, SORT_NUMERIC);
+
+        return new self(
+            width: $dimensions[0],
+            height: $dimensions[1],
+            length: $dimensions[2],
+            weight: $product->weight,
+        );
+    }
+
     /** @param array<mixed, mixed> $input */
     private static function floatField(array $input, string $field): float
     {

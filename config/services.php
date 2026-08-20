@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Facade\PackingFacade;
+use App\Logging\ErrorLogLogger;
 use App\Repository\PackagingRepository;
 use App\Service\PackingService\CachedPackingServiceDecorator;
 use App\Service\PackingService\FailoverPackingService;
@@ -13,6 +14,7 @@ use App\Service\PackingService\ShipmonkSamplePackingService\ShipmonkSamplePackin
 use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -32,6 +34,7 @@ return static function (ContainerConfigurator $container): void {
     $services
         ->set(ShipmonkSamplePackingApiClient::class, ShipmonkSamplePackingApiClient::class)
         ->arg('$httpClient', service(ClientInterface::class));
+    $services->set(LoggerInterface::class, ErrorLogLogger::class);
 
 
     $services
@@ -44,7 +47,8 @@ return static function (ContainerConfigurator $container): void {
         ->tag('packing.service');
     $services
         ->set(FailoverPackingService::class, FailoverPackingService::class)
-        ->arg('$packingServices', tagged_iterator('packing.service'));
+        ->arg('$packingServices', tagged_iterator('packing.service'))
+        ->arg('$logger', service(LoggerInterface::class));
     $services
         ->set(CacheInterface::class, FilesystemAdapter::class)
         ->args(['packing', 300, __DIR__ . '/../var/cache']);

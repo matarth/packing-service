@@ -8,12 +8,17 @@ use App\Exception\InvalidInputException;
 
 final readonly class PackingInput
 {
+    /** @var list<ProductInput> */
+    public array $products;
+
     /** @param list<ProductInput> $products */
-    public function __construct(public array $products)
+    public function __construct(array $products)
     {
         if ($products === []) {
             throw new InvalidInputException('Field "products" must contain at least one product.');
         }
+
+        $this->products = array_map(ProductInput::withCanonicalOrientation(...), $products);
     }
 
     /** @param array<string, mixed> $input */

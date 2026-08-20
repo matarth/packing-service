@@ -8,12 +8,15 @@ use App\DTO\PackingRequestDTO;
 use App\Exception\PackingProviderUnavailableException;
 use App\ValueObject\PackingResult;
 use LogicException;
+use Psr\Log\LoggerInterface;
 
 final readonly class FailoverPackingService implements PackingServiceInterface
 {
     /** @param iterable<PackingServiceInterface> $packingServices */
-    public function __construct(private iterable $packingServices)
-    {
+    public function __construct(
+        private iterable $packingServices,
+        private LoggerInterface $logger,
+    ) {
     }
 
     public function findSmallestBox(PackingRequestDTO $request): PackingResult
@@ -24,6 +27,10 @@ final readonly class FailoverPackingService implements PackingServiceInterface
             try {
                 return $packingService->findSmallestBox($request);
             } catch (PackingProviderUnavailableException $exception) {
+                $this->logger->warning('Packing provider unavailable.', [
+                    'provider' => $packingService::class,
+                    'exception' => $exception,
+                ]);
                 $lastException = $exception;
             }
         }

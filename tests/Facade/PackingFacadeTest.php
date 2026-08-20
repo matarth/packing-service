@@ -20,7 +20,7 @@ final class PackingFacadeTest extends TestCase
     public function testBuildsServiceRequestWithAvailablePackagings(): void
     {
         $input = new PackingInput([
-            new ProductInput(width: 1.0, height: 2.0, length: 3.0, weight: 4.0),
+            new ProductInput(width: 3.0, height: 1.0, length: 2.0, weight: 4.0),
         ]);
         $packagings = [new Packaging(width: 2.5, height: 3.0, length: 1.0, maxWeight: 20.0)];
         $repository = $this->createMock(PackagingRepository::class);
@@ -30,6 +30,9 @@ final class PackingFacadeTest extends TestCase
             ->method('findSmallestBox')
             ->with(self::callback(static function (PackingRequestDTO $request) use ($input): bool {
                 return $request->packingInput === $input
+                    && $request->packingInput->products[0]->width === 1.0
+                    && $request->packingInput->products[0]->height === 2.0
+                    && $request->packingInput->products[0]->length === 3.0
                     && count($request->packagings) === 1
                     && $request->packagings[0]->width === 1.0
                     && $request->packagings[0]->height === 2.5

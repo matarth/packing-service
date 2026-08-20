@@ -13,9 +13,23 @@ use App\Service\PackingService\FailoverPackingService;
 use App\Service\PackingService\PackingServiceInterface;
 use App\ValueObject\PackingResult;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 final class FailoverPackingServiceTest extends TestCase
 {
+    public function testDoesNotLogWhenTheFirstProviderSucceeds(): void
+    {
+        $request = $this->request();
+        $provider = $this->createMock(PackingServiceInterface::class);
+        $provider->method('findSmallestBox')->with($request)->willReturn(new PackingResult('box'));
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::never())->method('warning');
+        $service = new FailoverPackingService([$provider], $logger);
+
+        self::assertSame('box', $service->findSmallestBox($request)->containerId);
+    }
+
     public function testUsesTheNextProviderAfterAnUnavailableProvider(): void
     {
         $request = $this->request();
@@ -30,7 +44,27 @@ final class FailoverPackingServiceTest extends TestCase
             ->with($request)
             ->willReturn(new PackingResult('local-box'));
 
-        $service = new FailoverPackingService([$unavailableProvider, $availableProvider]);
+        $service = new FailoverPackingService([$unavailableProvider, $availableProvider], new NullLogger());
+
+        self::assertSame('local-box', $service->findSmallestBox($request)->containerId);
+    }
+
+    public function testLogsAnUnavailableProviderBeforeUsingTheNextProvider(): void
+    {
+        $request = $this->request();
+        $exception = new PackingProviderUnavailableException('Unavailable');
+        $unavailableProvider = $this->createMock(PackingServiceInterface::class);
+        $unavailableProvider->method('findSmallestBox')->with($request)->willThrowException($exception);
+        $availableProvider = $this->createMock(PackingServiceInterface::class);
+        $availableProvider->method('findSmallestBox')->with($request)->willReturn(new PackingResult('local-box'));
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())
+            ->method('warning')
+            ->with('Packing provider unavailable.', [
+                'provider' => $unavailableProvider::class,
+                'exception' => $exception,
+            ]);
+        $service = new FailoverPackingService([$unavailableProvider, $availableProvider], $logger);
 
         self::assertSame('local-box', $service->findSmallestBox($request)->containerId);
     }
@@ -43,7 +77,7 @@ final class FailoverPackingServiceTest extends TestCase
         $firstProvider->method('findSmallestBox')->willThrowException($firstException);
         $lastProvider = $this->createMock(PackingServiceInterface::class);
         $lastProvider->method('findSmallestBox')->willThrowException($lastException);
-        $service = new FailoverPackingService([$firstProvider, $lastProvider]);
+        $service = new FailoverPackingService([$firstProvider, $lastProvider], new NullLogger());
 
         try {
             $service->findSmallestBox($this->request());
@@ -64,7 +98,9 @@ final class FailoverPackingServiceTest extends TestCase
             ->willThrowException($noFitException);
         $nextProvider = $this->createMock(PackingServiceInterface::class);
         $nextProvider->expects(self::never())->method('findSmallestBox');
-        $service = new FailoverPackingService([$noFitProvider, $nextProvider]);
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::never())->method('warning');
+        $service = new FailoverPackingService([$noFitProvider, $nextProvider], $logger);
 
         try {
             $service->findSmallestBox($request);
