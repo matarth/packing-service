@@ -9,7 +9,6 @@
         "psr/log": "^3.0",
         "guzzlehttp/psr7": "2.*",
         "doctrine/orm": "3.*",
-        "symfony/cache": "7.*",
         "symfony/dependency-injection": "^7.4",
         "symfony/config": "^7.4",
         "guzzlehttp/guzzle": "^7.10"

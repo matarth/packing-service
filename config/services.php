@@ -16,8 +16,6 @@ use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use Symfony\Component\Cache\Adapter\FilesystemAdapter;
-use Symfony\Contracts\Cache\CacheInterface;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_iterator;
@@ -50,12 +48,9 @@ return static function (ContainerConfigurator $container): void {
         ->arg('$packingServices', tagged_iterator('packing.service'))
         ->arg('$logger', service(LoggerInterface::class));
     $services
-        ->set(CacheInterface::class, FilesystemAdapter::class)
-        ->args(['packing', 300, __DIR__ . '/../var/cache']);
-    $services
         ->set(CachedPackingServiceDecorator::class, CachedPackingServiceDecorator::class)
         ->arg('$packingService', service(FailoverPackingService::class))
-        ->arg('$cache', service(CacheInterface::class));
+        ->arg('$entityManager', service(EntityManagerInterface::class));
     $services->alias(PackingServiceInterface::class, CachedPackingServiceDecorator::class);
     $services
         ->set(PackagingRepository::class, PackagingRepository::class)

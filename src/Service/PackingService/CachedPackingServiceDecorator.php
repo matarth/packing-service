@@ -7,31 +7,38 @@ namespace App\Service\PackingService;
 use App\DTO\PackagingDTO;
 use App\DTO\PackingRequestDTO;
 use App\DTO\PackingResult;
+use App\Entity\CachedPackingResult;
+use App\Entity\Packaging;
 use App\Input\ProductInput;
-use Psr\Cache\CacheItemInterface;
-use Symfony\Contracts\Cache\CacheInterface;
+use Doctrine\ORM\EntityManagerInterface;
+use LogicException;
 
 final readonly class CachedPackingServiceDecorator implements PackingServiceInterface
 {
-    private const CACHE_TTL_SECONDS = 300;
-
     public function __construct(
         private PackingServiceInterface $packingService,
-        private CacheInterface $cache,
+        private EntityManagerInterface $entityManager,
     ) {
     }
 
     public function findSmallestBox(PackingRequestDTO $request): PackingResult
     {
-        /** @var PackingResult $result */
-        $result = $this->cache->get(
-            $this->createCacheKey($request),
-            function (CacheItemInterface $item) use ($request): PackingResult {
-                $item->expiresAfter(self::CACHE_TTL_SECONDS);
-
-                return $this->packingService->findSmallestBox($request);
-            },
+        $cacheKey = $this->createCacheKey($request);
+        $cachedResult = $this->entityManager->getRepository(CachedPackingResult::class)->findOneBy(
+            ['cacheKey' => $cacheKey],
         );
+        if ($cachedResult instanceof CachedPackingResult) {
+            return new PackingResult((string) $cachedResult->getPackaging()->getId());
+        }
+
+        $result = $this->packingService->findSmallestBox($request);
+        $packaging = $this->entityManager->find(Packaging::class, $result->containerId);
+        if (!$packaging instanceof Packaging) {
+            throw new LogicException('The packing service returned a packaging that is not persisted.');
+        }
+
+        $this->entityManager->persist(new CachedPackingResult($cacheKey, $packaging));
+        $this->entityManager->flush();
 
         return $result;
     }
