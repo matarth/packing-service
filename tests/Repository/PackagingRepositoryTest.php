@@ -8,24 +8,14 @@ use App\Entity\Packaging;
 use App\Input\PackingInput;
 use App\Input\ProductInput;
 use App\Repository\PackagingRepository;
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Tools\SchemaTool;
-use PHPUnit\Framework\TestCase;
+use App\Tests\DatabaseTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
-final class PackagingRepositoryTest extends TestCase
+final class PackagingRepositoryTest extends DatabaseTestCase
 {
-    private EntityManagerInterface $entityManager;
-
     protected function setUp(): void
     {
-        /** @var EntityManagerInterface $entityManager */
-        $entityManager = require __DIR__ . '/../../src/bootstrap.php';
-        $this->entityManager = $entityManager;
-
-        $schemaTool = new SchemaTool($this->entityManager);
-        $metadata = [$this->entityManager->getClassMetadata(Packaging::class)];
-        $schemaTool->dropSchema($metadata);
-        $schemaTool->createSchema($metadata);
+        parent::setUp();
 
         foreach (
             [
@@ -36,12 +26,15 @@ final class PackagingRepositoryTest extends TestCase
                 [9.0, 9.0, 9.0, 30.0],
             ] as [$width, $height, $length, $maxWeight]
         ) {
-            $this->entityManager->persist(new Packaging($width, $height, $length, $maxWeight));
+            $this->packagingBuilder
+                ->withWidth($width)
+                ->withHeight($height)
+                ->withLength($length)
+                ->withMaxWeight($maxWeight)
+                ->build();
         }
-
-        $this->entityManager->flush();
-        $this->entityManager->clear();
     }
+
     public function testFiltersOutPackagesThatDoNotHaveEnoughVolume(): void
     {
         $packagings = $this->repository()->findPotentiallyFitting(new PackingInput([
@@ -51,7 +44,7 @@ final class PackagingRepositoryTest extends TestCase
 
         self::assertSame(
             [2, 3, 4, 5],
-            array_map(static fn (Packaging $packaging): ?int => $packaging->getId(), $packagings),
+            array_map(static fn (Packaging $packaging): int => $packaging->getId(), $packagings),
         );
     }
 
@@ -63,8 +56,30 @@ final class PackagingRepositoryTest extends TestCase
 
         self::assertSame(
             [2, 4, 5],
-            array_map(static fn (Packaging $packaging): ?int => $packaging->getId(), $packagings),
+            array_map(static fn (Packaging $packaging): int => $packaging->getId(), $packagings),
         );
+    }
+
+    #[DataProvider('isolationRuns')]
+    public function testDoesNotLeakDatabaseStateBetweenTests(float $maxWeight): void
+    {
+        self::assertCount(5, $this->repository()->findAll());
+
+        $this->packagingBuilder
+            ->withWidth(10.0)
+            ->withHeight(10.0)
+            ->withLength(10.0)
+            ->withMaxWeight($maxWeight)
+            ->build();
+
+        self::assertCount(6, $this->repository()->findAll());
+    }
+
+    /** @return iterable<string, array{float}> */
+    public static function isolationRuns(): iterable
+    {
+        yield 'first isolated test' => [40.0];
+        yield 'second isolated test' => [50.0];
     }
 
     private function repository(): PackagingRepository

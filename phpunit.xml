@@ -4,7 +4,8 @@
   <php>
     <ini name="error_reporting" value="-1"/>
     <server name="APP_ENV" value="test" force="true"/>
-    <server name="PACKING_DATABASE_NAME" value="packing_test" force="true"/>
+    <env name="PACKING_DATABASE_HOST" value="shipmonk-packing-test-mysql" force="true"/>
+    <env name="PACKING_DATABASE_NAME" value="packing_test" force="true"/>
     <server name="SHELL_VERBOSITY" value="-1"/>
     <server name="SYMFONY_PHPUNIT_REMOVE" value=""/>
     <server name="SYMFONY_PHPUNIT_VERSION" value="9.5"/>

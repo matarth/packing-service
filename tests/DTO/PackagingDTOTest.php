@@ -5,17 +5,22 @@ declare(strict_types=1);
 namespace App\Tests\DTO;
 
 use App\DTO\PackagingDTO;
-use App\Entity\Packaging;
-use PHPUnit\Framework\TestCase;
+use App\Tests\DatabaseTestCase;
 
-final class PackagingDTOTest extends TestCase
+final class PackagingDTOTest extends DatabaseTestCase
 {
     public function testCreatesCanonicalDimensionOrientationFromAnEntity(): void
     {
-        $packaging = new Packaging(width: 3.0, height: 1.0, length: 2.0, maxWeight: 10.0);
+        $packaging = $this->packagingBuilder
+            ->withWidth(3.0)
+            ->withHeight(1.0)
+            ->withLength(2.0)
+            ->withMaxWeight(10.0)
+            ->build();
 
         $dto = PackagingDTO::withNormalizedRotation($packaging);
 
+        self::assertSame(1, $dto->id);
         self::assertSame(1.0, $dto->width);
         self::assertSame(2.0, $dto->height);
         self::assertSame(3.0, $dto->length);

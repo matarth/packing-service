@@ -36,7 +36,6 @@ final class PackingServiceConfigurationTest extends TestCase
     private function packingServices(FailoverPackingService $failoverService): array
     {
         $property = new \ReflectionProperty($failoverService, 'packingServices');
-        $property->setAccessible(true);
 
         /** @var iterable<object> $packingServices */
         $packingServices = $property->getValue($failoverService);

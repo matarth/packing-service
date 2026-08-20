@@ -9,10 +9,11 @@ bash:
 	docker compose run --rm shipmonk-packing-app bash
 
 test:
+	docker compose up -d --wait shipmonk-packing-test-mysql
 	$(DOCKER_RUN) vendor/bin/phpunit tests
 
 phpstan:
-	$(DOCKER_RUN) vendor/bin/phpstan analyse src --level max
+	$(DOCKER_RUN) php -d memory_limit=2G vendor/bin/phpstan analyse src --level max
 
 cs:
 	$(DOCKER_RUN) vendor/bin/phpcs --standard=PSR12 src tests
