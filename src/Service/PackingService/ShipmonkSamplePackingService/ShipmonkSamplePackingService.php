@@ -60,10 +60,6 @@ class ShipmonkSamplePackingService implements PackingServiceInterface
     {
         $containers = [];
         foreach ($packagings as $packaging) {
-            if ($packaging->id === null) {
-                throw new PackingProviderException('Available packaging must have an identifier.');
-            }
-
             $containers[] = [
                 'id' => (string) $packaging->id,
                 'width' => self::toIntegerUnit($packaging->width),

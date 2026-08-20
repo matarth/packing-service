@@ -22,11 +22,11 @@ class LocalPackingService implements PackingServiceInterface
                 return $volumeComparison;
             }
 
-            return ($left->id ?? PHP_INT_MAX) <=> ($right->id ?? PHP_INT_MAX);
+            return $left->id <=> $right->id;
         });
 
         foreach ($packagings as $packaging) {
-            if ($packaging->id === null || !$this->canPackInOneRow($products, $packaging)) {
+            if (!$this->canPackInOneRow($products, $packaging)) {
                 continue;
             }
 

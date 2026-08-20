@@ -9,7 +9,7 @@ use App\Entity\Packaging;
 final readonly class PackagingDTO
 {
     public function __construct(
-        public ?int $id,
+        public int $id,
         public float $width,
         public float $height,
         public float $length,

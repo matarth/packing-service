@@ -6,6 +6,7 @@ namespace App\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use LogicException;
 
 /**
  * Represents a box available in the warehouse.
@@ -55,9 +56,12 @@ class Packaging
         $this->maxWeight = $maxWeight;
     }
 
-    public function getId(): ?int
+    public function getId(): int
     {
-        return $this->id;
+        return $this->id
+            ?? throw new LogicException(
+                'Packaging has no ID. Persist and flush it before requesting its ID.',
+            );
     }
 
     public function getWidth(): float
