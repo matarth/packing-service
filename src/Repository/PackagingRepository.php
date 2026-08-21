@@ -34,11 +34,13 @@ readonly class PackagingRepository
             ->andWhere('packaging.middleEdge >= :middleEdge')
             ->andWhere('packaging.longEdge >= :longEdge')
             ->andWhere('packaging.width * packaging.height * packaging.length >= :totalVolume')
+            ->andWhere('packaging.maxWeight >= :totalWeight')
             ->orderBy('packaging.id', 'ASC')
             ->setParameter('smallEdge', $requirements['smallEdge'])
             ->setParameter('middleEdge', $requirements['middleEdge'])
             ->setParameter('longEdge', $requirements['longEdge'])
             ->setParameter('totalVolume', $requirements['totalVolume'])
+            ->setParameter('totalWeight', $requirements['totalWeight'])
             ->getQuery();
 
         /** @var list<Packaging> $packagings */
@@ -47,13 +49,22 @@ readonly class PackagingRepository
         return $packagings;
     }
 
-    /** @return array{smallEdge: float, middleEdge: float, longEdge: float, totalVolume: float} */
+    /**
+     * @return array{
+     *     smallEdge: float,
+     *     middleEdge: float,
+     *     longEdge: float,
+     *     totalVolume: float,
+     *     totalWeight: float
+     * }
+     */
     private function createRequirements(PackingInput $input): array
     {
         $smallEdge = 0.0;
         $middleEdge = 0.0;
         $longEdge = 0.0;
         $totalVolume = 0.0;
+        $totalWeight = 0.0;
 
         foreach ($input->products as $product) {
             $productSmallEdge = min($product->width, $product->height, $product->length);
@@ -66,6 +77,7 @@ readonly class PackagingRepository
             $middleEdge = max($middleEdge, $productMiddleEdge);
             $longEdge = max($longEdge, $productLongEdge);
             $totalVolume += $product->width * $product->height * $product->length;
+            $totalWeight += $product->weight;
         }
 
         return [
@@ -73,6 +85,7 @@ readonly class PackagingRepository
             'middleEdge' => $middleEdge,
             'longEdge' => $longEdge,
             'totalVolume' => $totalVolume,
+            'totalWeight' => $totalWeight,
         ];
     }
 }

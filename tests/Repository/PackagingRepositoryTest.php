@@ -60,6 +60,19 @@ final class PackagingRepositoryTest extends DatabaseTestCase
         );
     }
 
+    public function testFiltersOutPackagesThatCannotCarryTheTotalProductWeight(): void
+    {
+        $packagings = $this->repository()->findPotentiallyFitting(new PackingInput([
+            new ProductInput(width: 1.0, height: 2.0, length: 3.0, weight: 10.0),
+            new ProductInput(width: 1.0, height: 2.0, length: 3.0, weight: 11.0),
+        ]));
+
+        self::assertSame(
+            [4, 5],
+            array_map(static fn (Packaging $packaging): int => $packaging->getId(), $packagings),
+        );
+    }
+
     #[DataProvider('isolationRuns')]
     public function testDoesNotLeakDatabaseStateBetweenTests(float $maxWeight): void
     {
