@@ -1,0 +1,37 @@
+name: CI
+
+on:
+    pull_request:
+        branches:
+            - master
+
+permissions:
+    contents: read
+
+jobs:
+    checks:
+        name: ${{ matrix.check.name }}
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                check:
+                    - name: PHPStan
+                      command: make phpstan
+                    - name: PHPCS
+                      command: make cs
+                    - name: Tests
+                      command: make test
+
+        steps:
+            - name: Check out repository
+              uses: actions/checkout@v7
+
+            - name: Configure Docker user
+              run: printf 'UID=%s\nGID=%s\n' "$(id -u)" "$(id -g)" > .env
+
+            - name: Install dependencies
+              run: docker compose run --rm --no-deps shipmonk-packing-app composer install --no-interaction --prefer-dist --no-progress
+
+            - name: Run ${{ matrix.check.name }}
+              run: ${{ matrix.check.command }}
