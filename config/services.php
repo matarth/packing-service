@@ -15,6 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
@@ -30,8 +31,12 @@ return static function (ContainerConfigurator $container): void {
             'timeout' => 10.0,
         ]]);
     $services
+        ->set('shipmonk.rate_limit_cache', FilesystemAdapter::class)
+        ->args(['shipmonk_rate_limit', 0, __DIR__ . '/../var/cache']);
+    $services
         ->set(ShipmonkSamplePackingApiClient::class, ShipmonkSamplePackingApiClient::class)
-        ->arg('$httpClient', service(ClientInterface::class));
+        ->arg('$httpClient', service(ClientInterface::class))
+        ->arg('$rateLimitCache', service('shipmonk.rate_limit_cache'));
     $services->set(LoggerInterface::class, ErrorLogLogger::class);
 
 
