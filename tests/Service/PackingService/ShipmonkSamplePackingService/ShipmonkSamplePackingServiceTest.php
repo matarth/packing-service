@@ -17,6 +17,7 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 final class ShipmonkSamplePackingServiceTest extends TestCase
 {
@@ -41,10 +42,13 @@ final class ShipmonkSamplePackingServiceTest extends TestCase
             ], JSON_THROW_ON_ERROR)),
         ]);
         $service = new ShipmonkSamplePackingService(
-            new ShipmonkSamplePackingApiClient(new Client([
-                'handler' => HandlerStack::create($handler),
-                'http_errors' => false,
-            ])),
+            new ShipmonkSamplePackingApiClient(
+                new Client([
+                    'handler' => HandlerStack::create($handler),
+                    'http_errors' => false,
+                ]),
+                $this->emptyRateLimitCache(),
+            ),
         );
 
         $result = $service->findSmallestBox($this->request());
@@ -76,10 +80,13 @@ final class ShipmonkSamplePackingServiceTest extends TestCase
             new Response(200, [], '{"packedContainers":[],"unpackedItems":["product-0"]}'),
         ]);
         $service = new ShipmonkSamplePackingService(
-            new ShipmonkSamplePackingApiClient(new Client([
-                'handler' => HandlerStack::create($handler),
-                'http_errors' => false,
-            ])),
+            new ShipmonkSamplePackingApiClient(
+                new Client([
+                    'handler' => HandlerStack::create($handler),
+                    'http_errors' => false,
+                ]),
+                $this->emptyRateLimitCache(),
+            ),
         );
 
         $this->expectException(NoPackagingFitsException::class);
@@ -92,10 +99,13 @@ final class ShipmonkSamplePackingServiceTest extends TestCase
             new Response(200, [], '{"packedContainers":[{"containerId":"unknown","items":[]}],"unpackedItems":[]}'),
         ]);
         $service = new ShipmonkSamplePackingService(
-            new ShipmonkSamplePackingApiClient(new Client([
-                'handler' => HandlerStack::create($handler),
-                'http_errors' => false,
-            ])),
+            new ShipmonkSamplePackingApiClient(
+                new Client([
+                    'handler' => HandlerStack::create($handler),
+                    'http_errors' => false,
+                ]),
+                $this->emptyRateLimitCache(),
+            ),
         );
 
         $this->expectException(PackingProviderException::class);
@@ -110,5 +120,10 @@ final class ShipmonkSamplePackingServiceTest extends TestCase
             ]),
             [new PackagingDTO(id: 1, width: 4.5, height: 5.25, length: 6.125, maxWeight: 7.875)],
         );
+    }
+
+    private function emptyRateLimitCache(): ArrayAdapter
+    {
+        return new ArrayAdapter();
     }
 }
