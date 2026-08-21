@@ -46,9 +46,12 @@ final readonly class ShipmonkSamplePackingApiClient
 
         $statusCode = $response->getStatusCode();
         return match (true) {
-            $statusCode >= 500, $statusCode === 429 => throw new PackingProviderException('The Shipmonk sample packing API is unavailable.'),
-            $statusCode === 400, $statusCode === 422 => throw new InvalidInputException('The Shipmonk sample packing API rejected the packing request.'),
-            $statusCode < 200, $statusCode >= 300 => throw new PackingProviderException('The Shipmonk sample packing API is unavailable.'),
+            $statusCode >= 500, $statusCode === 429 =>
+                throw new PackingProviderException('The Shipmonk sample packing API is unavailable.'),
+            $statusCode === 400, $statusCode === 422 =>
+                throw new InvalidInputException('The Shipmonk sample packing API rejected the packing request.'),
+            $statusCode < 200, $statusCode >= 300 =>
+                throw new PackingProviderException('The Shipmonk sample packing API is unavailable.'),
             default => $this->parseResponse((string) $response->getBody()),
         };
     }
