@@ -8,27 +8,21 @@ use App\Exception\InvalidInputException;
 
 final readonly class ProductInput
 {
+    /**
+     * The packing provider receives thousandths as signed 32-bit integers.
+     */
+    public const MAX_MEASUREMENT = 2_147_483.647;
+
     public function __construct(
         public float $width,
         public float $height,
         public float $length,
         public float $weight,
     ) {
-        if ($width <= 0) {
-            throw new InvalidInputException('Width must be greater than 0');
-        }
-
-        if ($height <= 0) {
-            throw new InvalidInputException('Height must be greater than 0');
-        }
-
-        if ($length <= 0) {
-            throw new InvalidInputException('Length must be greater than 0');
-        }
-
-        if ($weight <= 0) {
-            throw new InvalidInputException('Weight must be greater than 0');
-        }
+        self::validateMeasurement($width, 'Width');
+        self::validateMeasurement($height, 'Height');
+        self::validateMeasurement($length, 'Length');
+        self::validateMeasurement($weight, 'Weight');
     }
 
     /** @param array<mixed, mixed> $input */
@@ -68,5 +62,20 @@ final readonly class ProductInput
         }
 
         return (float) $value;
+    }
+
+    private static function validateMeasurement(float $value, string $field): void
+    {
+        if (!is_finite($value)) {
+            throw new InvalidInputException(sprintf('%s must be finite', $field));
+        }
+
+        if ($value <= 0) {
+            throw new InvalidInputException(sprintf('%s must be greater than 0', $field));
+        }
+
+        if ($value > self::MAX_MEASUREMENT) {
+            throw new InvalidInputException(sprintf('%s must not exceed 2147483.647', $field));
+        }
     }
 }

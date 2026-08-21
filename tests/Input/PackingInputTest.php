@@ -41,6 +41,21 @@ final class PackingInputTest extends TestCase
         self::assertSame(3.0, $product->width);
     }
 
+    public function testAcceptsConfiguredInputLimits(): void
+    {
+        $input = PackingInput::fromArray([
+            'products' => array_fill(0, 1000, [
+                'width' => 2_147_483.647,
+                'height' => 2_147_483.647,
+                'length' => 2_147_483.647,
+                'weight' => 2_147_483.647,
+            ]),
+        ]);
+
+        self::assertCount(1000, $input->products);
+        self::assertSame(2_147_483.647, $input->products[999]->weight);
+    }
+
     /** @dataProvider invalidInputProvider */
     public function testRejectsInvalidInput(array $input, string $message): void
     {
@@ -55,8 +70,17 @@ final class PackingInputTest extends TestCase
     {
         yield 'missing products' => [[], 'Field "products" is a required field of type array.'];
         yield 'empty products' => [['products' => []], 'Field "products" is a required field of type array.'];
+        yield 'products object instead of list' => [[
+            'products' => ['sku-1' => self::validProduct()],
+        ], 'Field "products" must be a JSON list.'];
+        yield 'too many products' => [[
+            'products' => array_fill(0, 1001, self::validProduct()),
+        ], 'Field "products" must contain at most 1000 products.'];
         yield 'non-array product' => [['products' => [true]], 'Each product must be an object.'];
         yield 'null product' => [['products' => [null]], 'Each product must be an object.'];
+        yield 'product list instead of object' => [[
+            'products' => [[1, 2, 3, 4]],
+        ], 'Each product must be an object.'];
         yield 'missing product field' => [
             ['products' => [['width' => 1], ['hight' => 1]]], 'Missing value at index `height`'
         ];
@@ -78,5 +102,23 @@ final class PackingInputTest extends TestCase
             'length' => 1,
             'weight' => 1,
         ]]], 'Value at index `width` must be a number.'];
+        yield 'positive infinity' => [['products' => [[
+            'width' => INF,
+            'height' => 1,
+            'length' => 1,
+            'weight' => 1,
+        ]]], 'Width must be finite'];
+        yield 'measurement above upper bound' => [['products' => [[
+            'width' => 2_147_483.648,
+            'height' => 1,
+            'length' => 1,
+            'weight' => 1,
+        ]]], 'Width must not exceed 2147483.647'];
+    }
+
+    /** @return array{width: int, height: int, length: int, weight: int} */
+    private static function validProduct(): array
+    {
+        return ['width' => 1, 'height' => 1, 'length' => 1, 'weight' => 1];
     }
 }
